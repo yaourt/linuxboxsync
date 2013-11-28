@@ -5,13 +5,13 @@ import os
 import pyinotify
 import tempfile
 
-from gtk3linuxboxsync.BoxDirectoryWatcher import BoxDirectoryWatcher
+from gtk3linuxboxsync.BoxLocalDirectoryWatcher import BoxLocalDirectoryWatcher
 
 
 __author__ = 'Yaourt'
 
 
-class TestBoxDirectoryWatcher(TestCase):
+class TestBoxLocalDirectoryWatcher(TestCase):
     def test_startAndStop(self):
         class EventHandler(pyinotify.ProcessEvent):
             def __init__(self):
@@ -27,7 +27,7 @@ class TestBoxDirectoryWatcher(TestCase):
                 self.deleted +=1
 
         event_processor = EventHandler()
-        w = BoxDirectoryWatcher(event_processor)
+        w = BoxLocalDirectoryWatcher(event_processor)
         w.start()
         utest_folder = tempfile.mkdtemp(dir=w.box_dir)
         utest_subfolder = os.path.join(utest_folder, 'subfolder')

@@ -6,8 +6,8 @@ import os
 import pyinotify
 
 
-class BoxDirectoryWatcher:
-    """Manage the event related to the user Box directory"""
+class BoxLocalDirectoryWatcher:
+    """Manage the event related to the local Box directory"""
 
     def __init__(self, eventProcessor):
         self.eventProcessor = eventProcessor
@@ -18,7 +18,7 @@ class BoxDirectoryWatcher:
 
         self.watch_manager = pyinotify.WatchManager()
         self.mask = pyinotify.IN_DELETE | pyinotify.IN_CREATE  # watched events
-        BoxDirectoryWatcher._instance = self
+        BoxLocalDirectoryWatcher._instance = self
 
     def start(self):
         """Start the watcher"""
