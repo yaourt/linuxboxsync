@@ -22,7 +22,7 @@ class GUI:
         v.connect("context-menu", self.disable_context_menu)
         v.load_uri('http://127.0.0.1:8080')
         w.show_all()
-        Gtk.main()
+
 
     def res_change(self, webview, webframe, webresource, req, resp=None, data=None):
         uri = req.get_uri()
@@ -37,3 +37,4 @@ class GUI:
 
 
 g = GUI()
+Gtk.main()
