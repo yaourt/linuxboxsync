@@ -33,10 +33,10 @@ else:
         with open(confFile, 'wb') as confFile:
             config.write(confFile)
 if(access_token is None and refresh_token is None):
-    oauth_gui = OAuthGUI()
+    oauth_gui = OAuthGUI(config, confFile)
     Gtk.main()
 
 now = datetime.utcnow()
 if(access_token is not None):
-    oauth_gui = OAuthGUI()
+    oauth_gui = OAuthGUI(config, confFile)
     Gtk.main()
