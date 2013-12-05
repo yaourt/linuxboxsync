@@ -1,7 +1,7 @@
 __author__ = 'yaourt'
 
 import os
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk
 
 try:
     from gi.repository import AppIndicator3  # @UnresolvedImport
@@ -13,11 +13,9 @@ class Indicator(object):
 
 
     def __init__(self):
-        user_dir = GLib.get_user_config_dir()
-
         _cur_dir = os.path.dirname(__file__)
         self.ind = AppIndicator3.Indicator.new(
-                        "thetool",
+                        "LinuxBoxSync (unofficial)",
                         "",
                         AppIndicator3.IndicatorCategory.APPLICATION_STATUS)
         self.ind.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
@@ -56,5 +54,5 @@ class Indicator(object):
     def quit(self, item):
         Gtk.main_quit()
 
-i= Indicator()
+i = Indicator()
 Gtk.main()

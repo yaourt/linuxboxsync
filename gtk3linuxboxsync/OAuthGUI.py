@@ -3,7 +3,7 @@ __author__ = 'yaourt'
 from gi.repository import Gtk, WebKit
 import urllib
 
-class GUI:
+class OAuthGUI:
     def __init__(self):
         w = Gtk.Window()
         w.set_title("Box.com login")
@@ -36,5 +36,5 @@ class GUI:
         return True
 
 
-g = GUI()
+g = OAuthGUI()
 Gtk.main()
