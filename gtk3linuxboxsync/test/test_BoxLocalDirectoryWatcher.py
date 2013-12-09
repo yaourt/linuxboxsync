@@ -1,3 +1,5 @@
+__author__ = 'yaourt'
+
 from unittest import TestCase
 import time
 import os
@@ -6,10 +8,6 @@ import pyinotify
 import tempfile
 
 from gtk3linuxboxsync.BoxLocalDirectoryWatcher import BoxLocalDirectoryWatcher
-
-
-__author__ = 'Yaourt'
-
 
 class TestBoxLocalDirectoryWatcher(TestCase):
     def test_startAndStop(self):

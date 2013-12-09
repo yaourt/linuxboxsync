@@ -1,3 +1,5 @@
+from gtk3linuxboxsync.OAuthGUI import OAuthGUI
+
 __author__ = 'yaourt'
 
 import os
@@ -5,14 +7,15 @@ from gi.repository import Gtk
 
 try:
     from gi.repository import AppIndicator3  # @UnresolvedImport
-    HAS_INDICATOR=True
+    HAS_INDICATOR = True
 except:
-    HAS_INDICATOR=False
+    HAS_INDICATOR = False
 
 class Indicator(object):
 
 
-    def __init__(self):
+    def __init__(self, configmanager):
+        self.configmanager = configmanager
         _cur_dir = os.path.dirname(__file__)
         self.ind = AppIndicator3.Indicator.new(
                         "LinuxBoxSync (unofficial)",
@@ -37,15 +40,17 @@ class Indicator(object):
         menu.append(quit_item)
         self.ind.set_menu(menu)
 
+        self.login()
+
     def set_label(self, txt):
         self.ind.set_label(txt, txt)
 
     def set_attention(self, attention):
         if attention:
-            self.ind.set_status (AppIndicator3.IndicatorStatus.ATTENTION)
+            self.ind.set_status(AppIndicator3.IndicatorStatus.ATTENTION)
             #self.ind.set_label("Attention Label 01234567890123456789012345678901234567890123456789012345678901234567890123456789", "")
         else:
-            self.ind.set_status (AppIndicator3.IndicatorStatus.ACTIVE)
+            self.ind.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
             #self.ind.set_label("", "")
 
     def swap_attention(self, item):
@@ -54,5 +59,7 @@ class Indicator(object):
     def quit(self, item):
         Gtk.main_quit()
 
-i = Indicator()
-Gtk.main()
+    def login(self):
+        access_token = self.configmanager.get_access_token()
+        if access_token is None:
+            oauthgui = OAuthGUI(self.configmanager)
