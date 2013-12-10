@@ -20,11 +20,20 @@ class ConfigManager:
         if os.path.isfile(self.conf_file):
             self.config.read(self.conf_file)
             self.access_token = self.config.get('OAuth', 'access_token')
-            self.access_token_validity =\
-                datetime.strptime(self.config.get('OAuth', 'access_token_validity'), ConfigManager._validity_format)
+            if self.access_token != 'None':
+                self.access_token_validity =\
+                    datetime.strptime(self.config.get('OAuth', 'access_token_validity'), ConfigManager._validity_format)
+            else:
+                self.access_token = None
+                self.access_token_validity = None
+
             self.refresh_token = self.config.get('OAuth', 'refresh_token')
-            self.refresh_token_validity =\
-                datetime.strptime(self.config.get('OAuth', 'refresh_token_validity'), ConfigManager._validity_format)
+            if self.refresh_token != 'None':
+                self.refresh_token_validity =\
+                    datetime.strptime(self.config.get('OAuth', 'refresh_token_validity'), ConfigManager._validity_format)
+            else:
+                self.refresh_token = None
+                self.refresh_token_validity = None
 
         else:
             if not os.path.exists(self.conf_dir):
