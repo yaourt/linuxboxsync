@@ -158,19 +158,21 @@ margin-left:-100px;margin-top:-50px;">
 </body>
 </html>
 """
-    def __init__(self, config_manager):
-        self.started = False
-        self.config_manager = config_manager
+    def __init__(self, config_manager, callback):
+        self.__started = False
+        self.__config_manager = config_manager
+        self.__callback = callback
         w = Gtk.Window()
+        w.set_modal(True)
         w.set_title("Box.com login")
         w.set_position(Gtk.WindowPosition.CENTER)
         v = WebKit.WebView()
-        self.v = v
-        self.w = w
+        self.__v = v
+        self.__w = w
         v.can_go_back_or_forward(False)
         sw = Gtk.ScrolledWindow()
         w.add(sw)
-        self.sw = sw
+        self.__sw = sw
         sw.add(v)
         w.set_size_request(400, 666)
         #w.connect("delete-event", Gtk.main_quit)
@@ -188,18 +190,19 @@ margin-left:-100px;margin-top:-50px;">
             json_data = urllib.unquote(state)
 
             req.set_uri('about:blank')
-            self.sw.remove(self.v)
+            self.__sw.remove(self.__v)
 
-            self.config_manager.update_from_json(json_data)
-            self.w.destroy()
+            self.__config_manager._update_from_json(json_data)
+            self.__w.destroy()
+            self.__callback()
 
     def disable_context_menu(webview, default_menu, hit_test_result, keyboard_triggered, data):
         return True
 
     def start(self):
-        if self.started:
+        if self.__started:
             return False
         else:
-            self.v.load_uri('https://linuxboxsyncbridge.appspot.com/')
-            self.started = True
+            self.__v.load_uri('https://linuxboxsyncbridge.appspot.com/')
+            self.__started = True
 

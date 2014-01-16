@@ -9,83 +9,73 @@ import logging
 import urllib2
 
 class ConfigManager:
-    _validity_format = '%Y-%m-%d %H:%M:%S'
+    __validity_format = '%Y-%m-%d %H:%M:%S'
 
     def __init__(self):
-        self.logger = logging.getLogger('ulinuxsync.ConfigManager')
-        self.conf_dir = os.path.join(GLib.get_user_config_dir(), 'ulinuxboxsync')
-        self.conf_file = os.path.join(self.conf_dir, "config.ini")
-        self.config = ConfigParser.ConfigParser()
+        self.__logger = logging.getLogger('ulinuxsync.ConfigManager')
+        self.__conf_dir = os.path.join(GLib.get_user_config_dir(), 'ulinuxboxsync')
+        self.__conf_file = os.path.join(self.__conf_dir, "config.ini")
+        self.__config = ConfigParser.ConfigParser()
 
-        if os.path.isfile(self.conf_file):
-            self.config.read(self.conf_file)
-            self.access_token = self.config.get('OAuth', 'access_token')
-            if self.access_token != 'None':
-                self.access_token_validity =\
-                    datetime.strptime(self.config.get('OAuth', 'access_token_validity'), ConfigManager._validity_format)
+        if os.path.isfile(self.__conf_file):
+            self.__config.read(self.__conf_file)
+            self.__access_token = self.__config.get('OAuth', 'access_token')
+            if self.__access_token != 'None':
+                self.__access_token_validity =\
+                    datetime.strptime(self.__config.get('OAuth', 'access_token_validity'), ConfigManager.__validity_format)
             else:
-                self.access_token = None
-                self.access_token_validity = None
+                self.__access_token = None
+                self.__access_token_validity = None
 
-            self.refresh_token = self.config.get('OAuth', 'refresh_token')
-            if self.refresh_token != 'None':
-                self.refresh_token_validity =\
-                    datetime.strptime(self.config.get('OAuth', 'refresh_token_validity'), ConfigManager._validity_format)
+            self.__refresh_token = self.__config.get('OAuth', 'refresh_token')
+            if self.__refresh_token != 'None':
+                self.__refresh_token_validity =\
+                    datetime.strptime(self.__config.get('OAuth', 'refresh_token_validity'), ConfigManager.__validity_format)
             else:
-                self.refresh_token = None
-                self.refresh_token_validity = None
+                self.__refresh_token = None
+                self.__refresh_token_validity = None
 
         else:
-            if not os.path.exists(self.conf_dir):
-                os.makedirs(self.conf_dir)
+            if not os.path.exists(self.__conf_dir):
+                os.makedirs(self.__conf_dir)
+            self.logout()
 
-            self.config.add_section('OAuth')
-            self.config.set('OAuth', 'access_token', 'None')
-            self.config.set('OAuth', 'access_token_validity', 'None')
-            self.config.set('OAuth', 'refresh_token', 'None')
-            self.config.set('OAuth', 'refresh_token_validity', 'None')
-            with open(self.conf_file, 'wb') as confFile:
-                self.config.write(confFile)
 
-            self.access_token = None
-            self.access_token_validity = None
-            self.refresh_token = None
-            self.refresh_token_validity = None
-
-    def update_from_json(self, json_string):
+    def _update_from_json(self, json_string):
         json_object = json.loads(json_string)
 
-        self.config.set('OAuth', 'access_token', json_object['access_token'])
-        self.config.set('OAuth', 'access_token_validity', (datetime.utcnow() + timedelta(seconds=(json_object['expires_in'] - 120))).strftime(ConfigManager._validity_format))
-        self.config.set('OAuth', 'refresh_token', json_object['refresh_token'])
-        self.config.set('OAuth', 'refresh_token_validity', (datetime.utcnow() + timedelta(days=59)).strftime(ConfigManager._validity_format))
-        with open(self.conf_file, 'wb') as configFile:
-            self.config.write(configFile)
-        self.access_token = self.config.get('OAuth', 'access_token')
-        self.access_token_validity = datetime.strptime(self.config.get('OAuth', 'access_token_validity'), ConfigManager._validity_format)
-        self.refresh_token = self.config.get('OAuth', 'refresh_token')
-        self.refresh_token_validity = datetime.strptime(self.config.get('OAuth', 'refresh_token_validity'), ConfigManager._validity_format)
+        self.__config.set('OAuth', 'access_token', json_object['access_token'])
+        self.__config.set('OAuth', 'access_token_validity', (datetime.utcnow() + timedelta(seconds=(json_object['expires_in'] - 120))).strftime(ConfigManager.__validity_format))
+        self.__config.set('OAuth', 'refresh_token', json_object['refresh_token'])
+        self.__config.set('OAuth', 'refresh_token_validity', (datetime.utcnow() + timedelta(days=59)).strftime(ConfigManager.__validity_format))
+        with open(self.__conf_file, 'wb') as configFile:
+            self.__config.write(configFile)
+        self.__access_token = self.__config.get('OAuth', 'access_token')
+        self.__access_token_validity = datetime.strptime(self.__config.get('OAuth', 'access_token_validity'), ConfigManager.__validity_format)
+        self.__refresh_token = self.__config.get('OAuth', 'refresh_token')
+        self.__refresh_token_validity = datetime.strptime(self.__config.get('OAuth', 'refresh_token_validity'), ConfigManager.__validity_format)
 
-    def get_access_token(self):
-        if self.access_token is not None and \
-           self.access_token_validity is not None and \
-           self.access_token_validity < datetime.utcnow():
-                self.logger.debug('Access token is expired, need to refresh it')
-                return self._refresh_token()
+    @property
+    def access_token(self):
+        if self.__access_token is not None and \
+           self.__access_token_validity is not None and \
+           self.__access_token_validity < datetime.utcnow():
+                self.__logger.debug('Access token is expired, need to refresh it')
+                return self.__refresh_token()
         else:
-            return self.access_token
+            return self.__access_token
 
-    def _refresh_token(self):
-        if self.refresh_token is not None and \
-           self.refresh_token_validity is not None and \
-           self.refresh_token_validity < datetime.utcnow():
-            self.logger.debug('Refresh token is expired. Full OAuth dance should be performed again')
+    def __refresh_token(self):
+        if self.__refresh_token is not None and \
+           self.__refresh_token_validity is not None and \
+           self.__refresh_token_validity < datetime.utcnow():
+            self.__logger.debug('Refresh token is expired. Full OAuth dance should be performed again')
             return None
 
         url = "https://linuxboxsyncbridge.appspot.com/refresh"
 
         params = {
-            'refresh_token': self.refresh_token,
+            'refresh_token': self.__refresh_token,
         }
 
         data = json.dumps(params)
@@ -97,5 +87,20 @@ class ConfigManager:
         f.close()
 
         if response is not None:
-            self.update_from_json(response)
-            return self.access_token
+            self.__update_from_json(response)
+            return self.__access_token
+
+    def logout(self):
+        if not self.__config.has_section('OAuth'):
+            self.__config.add_section('OAuth')
+        self.__config.set('OAuth', 'access_token', 'None')
+        self.__config.set('OAuth', 'access_token_validity', 'None')
+        self.__config.set('OAuth', 'refresh_token', 'None')
+        self.__config.set('OAuth', 'refresh_token_validity', 'None')
+        with open(self.__conf_file, 'wb') as confFile:
+            self.__config.write(confFile)
+
+        self.__access_token = None
+        self.__access_token_validity = None
+        self.__refresh_token = None
+        self.__refresh_token_validity = None

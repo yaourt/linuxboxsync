@@ -2,6 +2,7 @@ from gtk3linuxboxsync.OAuthGUI import OAuthGUI
 
 __author__ = 'yaourt'
 
+import logging
 import os
 from gi.repository import Gtk
 
@@ -15,83 +16,74 @@ class Indicator(object):
 
 
     def __init__(self, configmanager):
-        self.configmanager = configmanager
-        _cur_dir = os.path.dirname(__file__)
-        self.ind = AppIndicator3.Indicator.new(
+        self.__logger = logging.getLogger('ulinuxsync.Indicator')
+        self.__configmanager = configmanager
+        cur_dir = os.path.dirname(__file__)
+        self.__ind = AppIndicator3.Indicator.new(
                         "LinuxBoxSync (unofficial)",
                         "",
                         AppIndicator3.IndicatorCategory.APPLICATION_STATUS)
-        self.ind.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
-        iconpath = os.path.join(_cur_dir, 'b64.png')
-        self.ind.set_icon(iconpath)
-        iconpath_active = os.path.join(_cur_dir, 'b64-active.png')
-        self.ind.set_attention_icon_full(iconpath_active, "/!\ WARNING")
+        self.__ind.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
+        iconpath = os.path.join(cur_dir, 'b64.png')
+        self.__ind.set_icon(iconpath)
+        iconpath_active = os.path.join(cur_dir, 'b64-active.png')
+        self.__ind.set_attention_icon_full(iconpath_active, "/!\ WARNING")
+
+        # OAuth Gui
+        self.__oauthgui = None
 
         # Menu
-        # self.menu = Gtk.Menu()
-        self.menu = self.buildMenu()
-        # self.menu = self.buildMenu2()
-        # self.menu = self.buildMenu3()
-        self.ind.set_menu(self.menu)
-        # self.buildMenu()
+        self.__menu = self.__buildMenu()
+        self.__ind.set_menu(self.__menu)
 
-        #self.login()
-        if configmanager.access_token is None:
-            self.disconnect_item.set_active(True)
-            self.logout_item.set_active(True)
+        # Radio menu items initial states
+        self.__menuItemInitialStates()
 
-        self.connectActions()
+        # Connect actions to callback
+        self.__connectActions()
 
 
-    def set_label(self, txt):
-        self.ind.set_label(txt, txt)
+    def __set_label(self, txt):
+        self.__ind.__set_label(txt, txt)
 
-    def set_attention(self, attention):
+    def __set_attention(self, attention):
         if attention:
-            self.ind.set_status(AppIndicator3.IndicatorStatus.ATTENTION)
+            self.__ind.set_status(AppIndicator3.IndicatorStatus.ATTENTION)
             #self.ind.set_label("Attention Label 01234567890123456789012345678901234567890123456789012345678901234567890123456789", "")
         else:
-            self.ind.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
+            self.__ind.set_status(AppIndicator3.IndicatorStatus.ACTIVE)
             #self.ind.set_label("", "")
 
-    def swap_attention(self, item):
-        self.set_attention(item.get_active())
+    def __swap_attention(self, item):
+        self.__set_attention(item.get_active())
 
-    def quit(self, item):
-        Gtk.main_quit()
-
-    def login(self):
-        access_token = self.configmanager.get_access_token()
-        if access_token is None:
-            oauthgui = OAuthGUI(self.configmanager)
-
-    def buildMenu(self):
+    def __buildMenu(self):
         menu = Gtk.Menu()
 
         connect_group = []
-        self.connect_item = Gtk.RadioMenuItem.new_with_mnemonic(connect_group, '_Connected')
-        connect_group = self.connect_item.get_group()
-        self.connect_item.show()
-        menu.append(self.connect_item)
+        self.__connect_item = Gtk.RadioMenuItem.new_with_mnemonic(connect_group, '_Connected')
+        connect_group = self.__connect_item.get_group()
+        self.__connect_item.show()
+        menu.append(self.__connect_item)
 
-        self.disconnect_item = Gtk.RadioMenuItem.new_with_mnemonic(connect_group, '_Disconnected')
-        connect_group = self.disconnect_item.get_group()
-        self.disconnect_item.show()
-        menu.append(self.disconnect_item)
+        self.__disconnect_item = Gtk.RadioMenuItem.new_with_mnemonic(connect_group, '_Disconnected')
+        connect_group = self.__disconnect_item.get_group()
+        self.__disconnect_item.show()
+        menu.append(self.__disconnect_item)
 
         separator1 = Gtk.SeparatorMenuItem()
         separator1.show()
         menu.append(separator1)
 
         login_group = []
-        self.login_item = Gtk.RadioMenuItem.new_with_mnemonic(login_group, 'Logged _In')
-        login_group = self.login_item.get_group()
-        self.login_item.show()
-        menu.append(self.login_item)
-        self.logout_item = Gtk.RadioMenuItem.new_with_mnemonic(login_group, 'Logged _Out')
-        login_group = self.logout_item.get_group()
-        self.logout_item.show()
-        menu.append(self.logout_item)
+        self.__login_item = Gtk.RadioMenuItem.new_with_mnemonic(login_group, 'Logged _In')
+        login_group = self.__login_item.get_group()
+        self.__login_item.show()
+        menu.append(self.__login_item)
+        self.__logout_item = Gtk.RadioMenuItem.new_with_mnemonic(login_group, 'Logged _Out')
+        login_group = self.__logout_item.get_group()
+        self.__logout_item.show()
+        menu.append(self.__logout_item)
 
         separator1 = Gtk.SeparatorMenuItem()
         separator1.show()
@@ -105,13 +97,71 @@ class Indicator(object):
         # separator2.show()
         # menu.append(separator2)
 
-        self.quit_item = Gtk.MenuItem.new_with_mnemonic('_Quit')
-        self.quit_item.show()
-        menu.append(self.quit_item)
+        # self.__about_item = Gtk.MenuItem.new_with_mnemonic('_About')
+        # self.__about_item.show()
+        # menu.append(self.__about_item)
+
+        self.__quit_item = Gtk.MenuItem.new_with_mnemonic('_Quit')
+        self.__quit_item.show()
+        menu.append(self.__quit_item)
 
         return menu
 
-    def connectActions(self):
-        self.connect_item.connect('activate', self.swap_attention)
-        self.disconnect_item.connect('activate', self.swap_attention)
-        self.quit_item.connect('activate', self.quit)
+    def __menuItemInitialStates(self):
+        self.__connected = False
+        self.__disconnect_item.set_active(True)
+
+        access_token = self.__configmanager.access_token
+        if access_token is None:
+            self.__loggedin = False
+            self.__logout_item.set_active(True)
+        else:
+            self.__loggedin = True
+
+    def __connectActions(self):
+        self.__login_item.connect('activate', self.__login_callback, 'login')
+        self.__logout_item.connect('activate', self.__logout_callback, 'logout')
+
+        self.__connect_item.connect('activate', self.__connect_callback)
+        self.__disconnect_item.connect('activate', self.__disconnect_callback)
+
+        self.__quit_item.connect('activate', self.__quit_callback)
+
+    def __login_callback(self, item, data=None):
+        if self.__login_item.get_active():
+            self.__logger.debug('login_item is active')
+        else:
+            self.__logger.debug('login_item is not active')
+
+        if self.__loggedin:
+            return
+        else:
+            access_token = self.__configmanager.access_token
+            if access_token is None:
+                if self.__oauthgui is None:
+                    self.__oauthgui = OAuthGUI(self.__configmanager, self.__login_done)
+                # access_token = self.__configmanager.access_token
+                # if access_token is None:
+                #     self.__logout_item.set_active(True)
+            else:
+                self.__loggedin = True
+
+    def __logout_callback(self, item, data=None):
+        if self.__logout_item.get_active():
+            self.__logger.debug('logout_item is active')
+        else:
+            self.__logger.debug('logout_item is not active')
+
+        self.__configmanager.logout()
+
+    def __connect_callback(self, item, data=None):
+        return
+
+    def __disconnect_callback(self, item, data=None):
+        return
+
+    def __quit_callback(self, item, data=None):
+        Gtk.main_quit()
+
+    def __login_done(self):
+        self.__logger.debug('login done')
