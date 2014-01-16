@@ -36,6 +36,12 @@ class Indicator(object):
         # self.buildMenu()
 
         #self.login()
+        if configmanager.access_token is None:
+            self.disconnect_item.set_active(True)
+            self.logout_item.set_active(True)
+
+        self.connectActions()
+
 
     def set_label(self, txt):
         self.ind.set_label(txt, txt)
@@ -63,16 +69,14 @@ class Indicator(object):
         menu = Gtk.Menu()
 
         connect_group = []
-        self.connect_item = Gtk.RadioMenuItem.new_with_mnemonic(connect_group, '_Connect')
+        self.connect_item = Gtk.RadioMenuItem.new_with_mnemonic(connect_group, '_Connected')
         connect_group = self.connect_item.get_group()
         self.connect_item.show()
-        self.connect_item.connect('activate', self.swap_attention)
         menu.append(self.connect_item)
 
-        self.disconnect_item = Gtk.RadioMenuItem.new_with_mnemonic(connect_group, '_Disconnect')
+        self.disconnect_item = Gtk.RadioMenuItem.new_with_mnemonic(connect_group, '_Disconnected')
         connect_group = self.disconnect_item.get_group()
         self.disconnect_item.show()
-        self.disconnect_item.connect('activate', self.swap_attention)
         menu.append(self.disconnect_item)
 
         separator1 = Gtk.SeparatorMenuItem()
@@ -80,11 +84,11 @@ class Indicator(object):
         menu.append(separator1)
 
         login_group = []
-        self.login_item = Gtk.RadioMenuItem.new_with_mnemonic(login_group, '_Login')
+        self.login_item = Gtk.RadioMenuItem.new_with_mnemonic(login_group, 'Logged _In')
         login_group = self.login_item.get_group()
         self.login_item.show()
         menu.append(self.login_item)
-        self.logout_item = Gtk.RadioMenuItem.new_with_mnemonic(login_group, 'Log_out')
+        self.logout_item = Gtk.RadioMenuItem.new_with_mnemonic(login_group, 'Logged _Out')
         login_group = self.logout_item.get_group()
         self.logout_item.show()
         menu.append(self.logout_item)
@@ -93,9 +97,21 @@ class Indicator(object):
         separator1.show()
         menu.append(separator1)
 
+        # self.autoconn_item = Gtk.CheckMenuItem.new_with_mnemonic('_Auto connect')
+        # self.autoconn_item.show()
+        # menu.append(self.autoconn_item)
+        #
+        # separator2 = Gtk.SeparatorMenuItem()
+        # separator2.show()
+        # menu.append(separator2)
+
         self.quit_item = Gtk.MenuItem.new_with_mnemonic('_Quit')
         self.quit_item.show()
-        self.quit_item.connect('activate', self.quit)
         menu.append(self.quit_item)
 
         return menu
+
+    def connectActions(self):
+        self.connect_item.connect('activate', self.swap_attention)
+        self.disconnect_item.connect('activate', self.swap_attention)
+        self.quit_item.connect('activate', self.quit)

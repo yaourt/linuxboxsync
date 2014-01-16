@@ -2,7 +2,7 @@ __author__ = 'yaourt'
 
 import json
 from datetime import datetime, timedelta
-from gi.repository import GLib,Gtk
+from gi.repository import GLib, Gtk
 import os
 import ConfigParser
 import logging
@@ -91,7 +91,7 @@ class ConfigManager:
         data = json.dumps(params)
         req = urllib2.Request(url, data, {'Content-Type': 'application/json'})
         f = urllib2.urlopen(req)
-        response=None
+        response = None
         if 200 == f.getcode():
             response = f.read()
         f.close()
