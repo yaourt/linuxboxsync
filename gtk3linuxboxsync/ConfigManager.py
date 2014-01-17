@@ -61,11 +61,11 @@ class ConfigManager:
            self.__access_token_validity is not None and \
            self.__access_token_validity < datetime.utcnow():
                 self.__logger.debug('Access token is expired, need to refresh it')
-                return self.__refresh_token()
+                return self._refresh_token()
         else:
             return self.__access_token
 
-    def __refresh_token(self):
+    def _refresh_token(self):
         if self.__refresh_token is not None and \
            self.__refresh_token_validity is not None and \
            self.__refresh_token_validity < datetime.utcnow():
@@ -87,7 +87,7 @@ class ConfigManager:
         f.close()
 
         if response is not None:
-            self.__update_from_json(response)
+            self._update_from_json(response)
             return self.__access_token
 
     def logout(self):

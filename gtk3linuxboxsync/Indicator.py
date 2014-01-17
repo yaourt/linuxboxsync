@@ -29,9 +29,6 @@ class Indicator(object):
         iconpath_active = os.path.join(cur_dir, 'b64-active.png')
         self.__ind.set_attention_icon_full(iconpath_active, "/!\ WARNING")
 
-        # OAuth Gui
-        self.__oauthgui = None
-
         # Menu
         self.__menu = self.__buildMenu()
         self.__ind.set_menu(self.__menu)
@@ -60,30 +57,38 @@ class Indicator(object):
     def __buildMenu(self):
         menu = Gtk.Menu()
 
-        connect_group = []
-        self.__connect_item = Gtk.RadioMenuItem.new_with_mnemonic(connect_group, '_Connected')
-        connect_group = self.__connect_item.get_group()
-        self.__connect_item.show()
-        menu.append(self.__connect_item)
-
-        self.__disconnect_item = Gtk.RadioMenuItem.new_with_mnemonic(connect_group, '_Disconnected')
-        connect_group = self.__disconnect_item.get_group()
-        self.__disconnect_item.show()
-        menu.append(self.__disconnect_item)
-
-        separator1 = Gtk.SeparatorMenuItem()
-        separator1.show()
-        menu.append(separator1)
-
-        login_group = []
-        self.__login_item = Gtk.RadioMenuItem.new_with_mnemonic(login_group, 'Logged _In')
-        login_group = self.__login_item.get_group()
+        self.__login_item = Gtk.ImageMenuItem.new_with_mnemonic('Logged _In')
+        img = Gtk.Image()
+        img.set_from_file(os.path.join(os.path.dirname(__file__), 'offline.png'))
+        self.__login_item.set_image(img)
+        self.__login_item.set_always_show_image(True)
         self.__login_item.show()
         menu.append(self.__login_item)
-        self.__logout_item = Gtk.RadioMenuItem.new_with_mnemonic(login_group, 'Logged _Out')
-        login_group = self.__logout_item.get_group()
-        self.__logout_item.show()
-        menu.append(self.__logout_item)
+
+        # connect_group = []
+        # self.__connect_item = Gtk.RadioMenuItem.new_with_mnemonic(connect_group, '_Connected')
+        # connect_group = self.__connect_item.get_group()
+        # self.__connect_item.show()
+        # menu.append(self.__connect_item)
+        #
+        # self.__disconnect_item = Gtk.RadioMenuItem.new_with_mnemonic(connect_group, '_Disconnected')
+        # connect_group = self.__disconnect_item.get_group()
+        # self.__disconnect_item.show()
+        # menu.append(self.__disconnect_item)
+        #
+        # separator1 = Gtk.SeparatorMenuItem()
+        # separator1.show()
+        # menu.append(separator1)
+        #
+        # login_group = []
+        # self.__login_item = Gtk.RadioMenuItem.new_with_mnemonic(login_group, 'Logged _In')
+        # login_group = self.__login_item.get_group()
+        # self.__login_item.show()
+        # menu.append(self.__login_item)
+        # self.__logout_item = Gtk.RadioMenuItem.new_with_mnemonic(login_group, 'Logged _Out')
+        # login_group = self.__logout_item.get_group()
+        # self.__logout_item.show()
+        # menu.append(self.__logout_item)
 
         separator1 = Gtk.SeparatorMenuItem()
         separator1.show()
@@ -109,21 +114,21 @@ class Indicator(object):
 
     def __menuItemInitialStates(self):
         self.__connected = False
-        self.__disconnect_item.set_active(True)
+        # self.__disconnect_item.set_active(True)
 
         access_token = self.__configmanager.access_token
         if access_token is None:
             self.__loggedin = False
-            self.__logout_item.set_active(True)
+            # self.__logout_item.set_active(True)
         else:
             self.__loggedin = True
 
     def __connectActions(self):
         self.__login_item.connect('activate', self.__login_callback, 'login')
-        self.__logout_item.connect('activate', self.__logout_callback, 'logout')
+        # self.__logout_item.connect('activate', self.__logout_callback, 'logout')
 
-        self.__connect_item.connect('activate', self.__connect_callback)
-        self.__disconnect_item.connect('activate', self.__disconnect_callback)
+        # self.__connect_item.connect('activate', self.__connect_callback)
+        # self.__disconnect_item.connect('activate', self.__disconnect_callback)
 
         self.__quit_item.connect('activate', self.__quit_callback)
 
@@ -138,8 +143,7 @@ class Indicator(object):
         else:
             access_token = self.__configmanager.access_token
             if access_token is None:
-                if self.__oauthgui is None:
-                    self.__oauthgui = OAuthGUI(self.__configmanager, self.__login_done)
+                self.__oauthgui = OAuthGUI(self.__configmanager, self.__login_done)
                 # access_token = self.__configmanager.access_token
                 # if access_token is None:
                 #     self.__logout_item.set_active(True)
