@@ -32,7 +32,7 @@ class Indicator(object):
         # States
         self.__loggedin = False
         self.__connected = False
-        
+
         # Menu
         self.__menu = self.__buildMenu()
         self.__ind.set_menu(self.__menu)
