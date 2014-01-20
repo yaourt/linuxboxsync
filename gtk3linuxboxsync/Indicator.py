@@ -29,6 +29,10 @@ class Indicator(object):
         iconpath_active = os.path.join(cur_dir, 'b64-active.png')
         self.__ind.set_attention_icon_full(iconpath_active, "/!\ WARNING")
 
+        # States
+        self.__loggedin = False
+        self.__connected = False
+        
         # Menu
         self.__menu = self.__buildMenu()
         self.__ind.set_menu(self.__menu)
@@ -57,13 +61,22 @@ class Indicator(object):
     def __buildMenu(self):
         menu = Gtk.Menu()
 
+        self.__connect_item = Gtk.ImageMenuItem.new_with_mnemonic('_Connected')
+        img = Gtk.Image()
+        img.set_from_file(os.path.join(os.path.dirname(__file__), 'off.png'))
+        self.__connect_item.set_image(img)
+        self.__connect_item.set_always_show_image(True)
+        self.__connect_item.show()
+        menu.append(self.__connect_item)
+
         self.__login_item = Gtk.ImageMenuItem.new_with_mnemonic('Logged _In')
         img = Gtk.Image()
-        img.set_from_file(os.path.join(os.path.dirname(__file__), 'offline.png'))
+        img.set_from_file(os.path.join(os.path.dirname(__file__), 'off.png'))
         self.__login_item.set_image(img)
         self.__login_item.set_always_show_image(True)
         self.__login_item.show()
         menu.append(self.__login_item)
+
 
         # connect_group = []
         # self.__connect_item = Gtk.RadioMenuItem.new_with_mnemonic(connect_group, '_Connected')
@@ -106,7 +119,15 @@ class Indicator(object):
         # self.__about_item.show()
         # menu.append(self.__about_item)
 
-        self.__quit_item = Gtk.MenuItem.new_with_mnemonic('_Quit')
+        # self.__quit_item = Gtk.MenuItem.new_with_mnemonic('_Quit')
+        # self.__quit_item.show()
+        # menu.append(self.__quit_item)
+
+        self.__quit_item = Gtk.ImageMenuItem.new_with_mnemonic('_Quit')
+        img = Gtk.Image()
+        img.set_from_file(os.path.join(os.path.dirname(__file__), 'quit.png'))
+        self.__quit_item.set_image(img)
+        self.__quit_item.set_always_show_image(True)
         self.__quit_item.show()
         menu.append(self.__quit_item)
 
@@ -114,31 +135,32 @@ class Indicator(object):
 
     def __menuItemInitialStates(self):
         self.__connected = False
-        # self.__disconnect_item.set_active(True)
 
         access_token = self.__configmanager.access_token
         if access_token is None:
             self.__loggedin = False
-            # self.__logout_item.set_active(True)
+            img = Gtk.Image()
+            img.set_from_file(os.path.join(os.path.dirname(__file__), 'off.png'))
+            self.__login_item.set_image(img)
         else:
             self.__loggedin = True
+            img = Gtk.Image()
+            img.set_from_file(os.path.join(os.path.dirname(__file__), 'on.png'))
+            self.__login_item.set_image(img)
 
     def __connectActions(self):
+        self.__connect_item.connect('activate', self.__connect_callback)
         self.__login_item.connect('activate', self.__login_callback, 'login')
-        # self.__logout_item.connect('activate', self.__logout_callback, 'logout')
-
-        # self.__connect_item.connect('activate', self.__connect_callback)
-        # self.__disconnect_item.connect('activate', self.__disconnect_callback)
 
         self.__quit_item.connect('activate', self.__quit_callback)
 
     def __login_callback(self, item, data=None):
-        if self.__login_item.get_active():
-            self.__logger.debug('login_item is active')
-        else:
-            self.__logger.debug('login_item is not active')
-
         if self.__loggedin:
+            self.__configmanager.logout()
+            self.__loggedin = False
+            img = Gtk.Image()
+            img.set_from_file(os.path.join(os.path.dirname(__file__), 'off.png'))
+            self.__login_item.set_image(img)
             return
         else:
             access_token = self.__configmanager.access_token
@@ -148,20 +170,13 @@ class Indicator(object):
                 # if access_token is None:
                 #     self.__logout_item.set_active(True)
             else:
+                img = Gtk.Image()
+                img.set_from_file(os.path.join(os.path.dirname(__file__), 'on.png'))
+                self.__login_item.set_image(img)
                 self.__loggedin = True
 
-    def __logout_callback(self, item, data=None):
-        if self.__logout_item.get_active():
-            self.__logger.debug('logout_item is active')
-        else:
-            self.__logger.debug('logout_item is not active')
-
-        self.__configmanager.logout()
 
     def __connect_callback(self, item, data=None):
-        return
-
-    def __disconnect_callback(self, item, data=None):
         return
 
     def __quit_callback(self, item, data=None):
@@ -169,3 +184,13 @@ class Indicator(object):
 
     def __login_done(self):
         self.__logger.debug('login done')
+        img = Gtk.Image()
+        access_token = self.__configmanager.access_token
+        if access_token is None:
+            img.set_from_file(os.path.join(os.path.dirname(__file__), 'off.png'))
+            self.__loggedin = False
+        else:
+            img.set_from_file(os.path.join(os.path.dirname(__file__), 'on.png'))
+            self.__loggedin = True
+
+        self.__login_item.set_image(img)
