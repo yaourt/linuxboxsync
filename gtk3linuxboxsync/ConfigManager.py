@@ -6,16 +6,82 @@ from gi.repository import GLib, Gtk
 import os
 import ConfigParser
 import logging
+import logging.config
 import urllib2
+import yaml
+import time
 
 class ConfigManager:
     __validity_format = '%Y-%m-%d %H:%M:%S'
+    __default_logging_config = """
+{
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s UTC %(module)s %(processName)s(%(process)d) %(threadName)s(%(thread)d) %(message)s',
+        },
+        'simple': {
+            'format': '%(levelname)s %(asctime)s UTC %(module)s %(message)s',
+        },
+    },
+    'handlers': {
+        'null': {
+            'level':'DEBUG',
+            'class':'logging.NullHandler',
+        },
+        'console':{
+            'level':'DEBUG',
+            'class':'logging.StreamHandler',
+            'formatter': 'simple',
+            'stream': 'ext://sys.stdout',
+        },
+        'file':{
+            'level':'DEBUG',
+            'class':'logging.handlers.RotatingFileHandler',
+            'formatter':'verbose',
+            'filename':'applogs.log',
+            'maxBytes':1024,
+            'backupCount': 3,
+        }
+    },
+    'loggers': {
+        'ulinuxsync': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+        }
+    }
+}
+"""
 
     def __init__(self):
-        self.__logger = logging.getLogger('ulinuxsync.ConfigManager')
         self.__conf_dir = os.path.join(GLib.get_user_config_dir(), 'ulinuxboxsync')
         self.__conf_file = os.path.join(self.__conf_dir, "config.ini")
+        self.__logging_conf_file = os.path.join(self.__conf_dir, "logging.yaml")
+
+        # Setup logging
+        if not os.path.isfile(self.__logging_conf_file):
+            # Create yaml config file
+            f = open(self.__logging_conf_file, 'w')
+            f.write(ConfigManager.__default_logging_config)
+            f.close()
+        f = open(self.__logging_conf_file, 'r')
+        logging_dict = yaml.load(f)
+        f.close()
+        # Update the path of the file handler
+        logfile = logging_dict['handlers']['file']['filename']
+        logfile = os.path.join(self.__conf_dir, logfile)
+        logging_dict['handlers']['file']['filename'] = logfile
+        # Use UTC time
+        logging.Formatter.converter = time.gmtime
+        logging.config.dictConfig(logging_dict)
+
+        self.__logger = logging.getLogger('ulinuxsync.ConfigManager')
+        self.__logger.debug('Logging setup properly')
+
         self.__config = ConfigParser.ConfigParser()
+
+
 
         if os.path.isfile(self.__conf_file):
             self.__config.read(self.__conf_file)
